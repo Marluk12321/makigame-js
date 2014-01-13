@@ -1,25 +1,38 @@
 <!DOCTYPE html>
 <head>
 <title>Makigame 2.0</title>
+
+<style>
+    body{font-family: Arial}
+    td{padding: 6px}
+</style>
+
 </head>
 
 <body>
     
 <div align="center">
-<h1 style="font-family:Arial">MAKIGAME 2.0</h1>
+<h1>MAKIGAME 2.0</h1>
 <canvas id="canid" width="1000" height="577" style="border:3px solid black;">
 </canvas>
-<h4 style="font-family:Arial">Movement: Arrow Keys, Restart: R</h4>
+
+<table border="1" cellspacing="2" style="border: 2px solid">
+    <tr><td>Movement: Arrow Keys</td>
+    <td>Restart: R</td>
+    <td>Pause: P</td></tr>
+</table>
+
 </div>
 
 <script>
-//todo: "turning":v, angle, "3d" player movement+collisions and object transitions+animation
+//todo: pause, player2?: colliding/blocking, "turning":v, angle, "3d" player movement+collisions and object transitions+animation
 
 //GLOBALS, START
 var canvas=document.getElementById("canid"),
 	
     W=canvas.width, H=canvas.height, HeaderH=27,
-    UP=38, DOWN=40, LEFT=37, RIGHT=39, R=82,
+    UP=38, DOWN=40, LEFT=37, RIGHT=39, 
+    P=80, R=82,
 
     Keys={};
 addEventListener("keydown",
@@ -46,6 +59,8 @@ function gameStuff(){
             collisionCounterOld=collisionCounter,
             spawnCounterOld=spawnCounter,
             secondsOld=0;
+    
+            paused=[false, true];
         
     Drawing.font="17px Arial";
     
@@ -53,6 +68,7 @@ function gameStuff(){
         starttime=then=Date.now();
         collisionCounter=spawnCounter=0;
         spawnFlag=false;
+        paused=[false, true];
 
         Objects=new objectManager();
         collisionCounter+=Objects.checkCollisions();
@@ -143,9 +159,19 @@ function gameStuff(){
     }
         
     this.mainLoop=function(){
+        if (Keys[R]) restart();
         if ( collisionCounter>=10 ){
-            if (Keys[R]) restart();
             return;
+        }
+        if (Keys[P] || paused[0] || !paused[1]){
+            if (!Keys[P]) paused[1]=true;
+            if (Keys[P] && paused[1])
+            {
+                paused[0]=!paused[0];
+                paused[1]=false;
+                if (!paused[0]) starttime+=getDeltaTime();
+            }
+            if (paused[0]) return;
         }
 
         Objects.moveAll(getDeltaTime());
@@ -294,23 +320,23 @@ function player(){
     var x=W/5-18, y=Math.floor( HeaderH+(H-HeaderH)/2-13 ),
         w=32, h=16, color="gray",
         v=0.125,
-        xModifier=2, yModifier=4;
+        xModifier=2, yFlag=0;
     this.isHit=false;
 	
     this.getSides=function(){ return {left:x, top:y, right:x+w, bottom:y+h} }
 	
     this.move=function(diff){
         xModifier=2;
-        yModifier=4;
+        yFlag=0;
         
         if (Keys[UP] && !Keys[DOWN]){
             y-=v*diff;
-            yModifier=8;
+            yFlag=1;
             if (y<HeaderH) y=HeaderH;
         }
         if (Keys[DOWN] && !Keys[UP]){
             y+=v*diff;
-            yModifier=0;
+            yFlag=-1;
             if (y+h>H) y=H-h;
         }
         if (Keys[LEFT] && !Keys[RIGHT]){
@@ -336,11 +362,32 @@ function player(){
         }
         Drawing.beginPath();
         Drawing.moveTo(x,y+h/8);
-        Drawing.lineTo(x-xModifier*h/4,y+yModifier*h/8);
+        Drawing.lineTo(x-xModifier*h/4,y+h/2);
         Drawing.lineTo(x,y+7*h/8);
         Drawing.closePath();
         Drawing.fill();
         Drawing.stroke();
+        
+        switch (yFlag){
+            case 0: break;
+            case 1:
+                    Drawing.beginPath();
+                    Drawing.moveTo(x+2*w/8,y+h);
+                    Drawing.lineTo(x+3*w/8,y+h+3+h/8);
+                    Drawing.lineTo(x+4*w/8,y+h);
+                    Drawing.closePath();
+                    Drawing.fill();
+                    Drawing.stroke();
+                    break;
+            case -1:
+                    Drawing.beginPath();
+                    Drawing.moveTo(x+2*w/8,y);
+                    Drawing.lineTo(x+3*w/8,y-3*h/8);
+                    Drawing.lineTo(x+4*w/8,y);
+                    Drawing.closePath();
+                    Drawing.fill();
+                    Drawing.stroke();
+        }
         
         if (this.isHit) Drawing.fillStyle="#FFCC00";
         else Drawing.fillStyle=color;
