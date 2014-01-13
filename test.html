@@ -13,7 +13,7 @@
 </div>
 
 <script>
-//todo: player move animation, "turning":v, angle, "3d" player movement+collisions and object transitions+animation
+//todo: "turning":v, angle, "3d" player movement+collisions and object transitions+animation
 
 //GLOBALS, START
 var canvas=document.getElementById("canid"),
@@ -292,40 +292,64 @@ function bCircle(x, y, r, color, vx, vy){
 //PLAYER CLASS
 function player(){
     var x=W/5-18, y=Math.floor( HeaderH+(H-HeaderH)/2-13 ),
-        w=24, h=16, color="gray",
-        v=0.125;
+        w=32, h=16, color="gray",
+        v=0.125,
+        xModifier=2, yModifier=4;
     this.isHit=false;
 	
     this.getSides=function(){ return {left:x, top:y, right:x+w, bottom:y+h} }
 	
     this.move=function(diff){
+        xModifier=2;
+        yModifier=4;
+        
         if (Keys[UP] && !Keys[DOWN]){
             y-=v*diff;
+            yModifier=8;
             if (y<HeaderH) y=HeaderH;
         }
         if (Keys[DOWN] && !Keys[UP]){
             y+=v*diff;
+            yModifier=0;
             if (y+h>H) y=H-h;
         }
         if (Keys[LEFT] && !Keys[RIGHT]){
             x-=v*diff;
+            xModifier=1;
             if (x<0) x=0;
         }
         if (Keys[RIGHT] && !Keys[LEFT]){
             x+=v*diff;
+            xModifier=4;
             if (x+w>W) x=W-w;
         }
     }
     this.draw=function(){
         var temp=Drawing.fillStyle;
+        if (this.isHit){
+            Drawing.fillStyle="white";
+            Drawing.strokeStyle="black";
+        }
+        else{
+            Drawing.fillStyle="orange";
+            Drawing.strokeStyle="brown";
+        }
+        Drawing.beginPath();
+        Drawing.moveTo(x,y+h/8);
+        Drawing.lineTo(x-xModifier*h/4,y+yModifier*h/8);
+        Drawing.lineTo(x,y+7*h/8);
+        Drawing.closePath();
+        Drawing.fill();
+        Drawing.stroke();
+        
         if (this.isHit) Drawing.fillStyle="#FFCC00";
         else Drawing.fillStyle=color;
         Drawing.beginPath();
-        Drawing.moveTo(x,y);
+        Drawing.moveTo(x,y-h/8);
         Drawing.lineTo(x+w-w/8, y);
         Drawing.lineTo(x+w+w/8, y+h/2);
         Drawing.lineTo(x+w-w/8, y+h);
-        Drawing.lineTo(x, y+h);
+        Drawing.lineTo(x, y+h+h/8);
         Drawing.closePath();
         Drawing.fill();
         Drawing.fillStyle=temp;
