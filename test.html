@@ -1,20 +1,25 @@
-<html>
-<body>
+<!DOCTYPE html>
+<head>
+<title>Makigame 2.0</title>
+</head>
 
+<body>
+    
 <div align="center">
 <h1 style="font-family:Arial">MAKIGAME 2.0</h1>
 <canvas id="canid" width="800" height="477" style="border:3px solid black;">
 </canvas>
+<h4 style="font-family:Arial">Movement: Arrow Keys, Restart: R</h4>
 </div>
 
 <script>
-//todo: spawn densitiy/limit, restart, "turning"-v, angle, "3d" player movement+collisions and object transitions+animation
+//todo: spawn densitiy/limit, restart, "turning":v, angle, "3d" player movement+collisions and object transitions+animation
 
 //GLOBALS, START
 var canvas=document.getElementById("canid"),
 	
     W=canvas.width, H=canvas.height, HeaderH=27,
-    UP=38, DOWN=40, LEFT=37, RIGHT=39,
+    UP=38, DOWN=40, LEFT=37, RIGHT=39, R=82,
 
     Keys={};
 addEventListener("keydown",
@@ -22,7 +27,7 @@ addEventListener("keydown",
                  ,false);
 addEventListener("keyup",
                  function(e){Keys[e.keyCode]=false}
-                 ,false);
+                 ,false);              
 
 var Drawing=canvas.getContext("2d"),
 
@@ -43,9 +48,7 @@ function gameStuff(){
             secondsOld=0;
         
     Drawing.font="17px Arial";
-    //start();
     
-    var stop=function(){ clearInterval(interval) }
     var canSpawn=function(){
         if (spawnCounter>=30) return false;
 
@@ -131,7 +134,7 @@ function gameStuff(){
         
     this.mainLoop=function(){
         if ( collisionCounter>=10 ){
-            stop();
+            if (Keys[R]) this.restart();
             return;
         }
 
@@ -151,19 +154,14 @@ function gameStuff(){
         interval=setInterval( function(){ return temp.mainLoop() } ,1);
     }
     this.restart=function(){
-        if (collisionCounter<10) return;
-
         starttime=then=Date.now();
         collisionCounter=spawnCounter=0;
         spawnFlag=false;
 
         Objects=new objectManager();
         collisionCounter+=Objects.checkCollisions();
-        this.drawBG(false);
+        drawBG(false);
         Objects.drawAll();
-        
-        var temp=this;
-        interval=setInterval( function(){ return temp.mainLoop() } ,1);
     }
     this.spawned=function(num){ spawnCounter+=num }
     this.despawned=function(num){ spawnCounter-=num }
