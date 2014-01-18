@@ -1,38 +1,38 @@
 <!DOCTYPE html>
+<html>
 <head>
-<title>Makigame 2.0</title>
-
-<style>
-    body{font-family: Arial}
-    td{padding: 6px}
-</style>
-
+    <title>Makigame 2.0</title>
+    <style>
+        table{border: 2px solid; margin: 15px}
+        body{font-family: Arial}
+        td{padding: 6px}
+    </style>
 </head>
 
 <body>
-    
-<div align="center">
-<h1>MAKIGAME 2.0</h1>
-<canvas id="canid" width="1000" height="577" style="border:3px solid black;">
-</canvas>
+    <div align="center">
+        <h1>MAKIGAME 2.0</h1>
+        <canvas id="canid" width="1000" height="577" style="border:3px solid black;">
+        </canvas>
 
-<table border="1" cellspacing="2" style="border: 2px solid">
-    <tr><td>Movement: Arrow Keys</td>
-    <td>Restart: R</td>
-    <td>Pause: P</td></tr>
-</table>
-
-</div>
+        <table border="1" cellspacing="2">
+            <tr>
+                <td>Movement: Arrow Keys</td>
+                <td>Restart: R</td>
+                <td>Pause: P</td>
+            </tr>
+        </table>
+    </div>
 
 <script>
-//todo: pause, player2?: colliding/blocking, "turning":v, angle, "3d" player movement+collisions and object transitions+animation
+//todo: collectables for score: score?!, player2?: colliding/blocking?, "turning": v+angle, "3d" player movement+collisions? and/or object transitions+animation
 
 //GLOBALS, START
 var canvas=document.getElementById("canid"),
 	
     W=canvas.width, H=canvas.height, HeaderH=27,
     UP=38, DOWN=40, LEFT=37, RIGHT=39, 
-    P=80, R=82,
+    P=80, R=82, SHIFT=16,
 
     Keys={};
 addEventListener("keydown",
@@ -53,14 +53,14 @@ Game.start();
 //GAME CLASS
 function gameStuff(){
     var starttime=then=Date.now(),
-            interval, spawnFlag=false,
-            collisionCounter=spawnCounter=0,
-                
-            collisionCounterOld=collisionCounter,
-            spawnCounterOld=spawnCounter,
-            secondsOld=0;
-    
-            paused=[false, true];
+        interval, spawnFlag=false,
+        collisionCounter=spawnCounter=0,
+
+        collisionCounterOld=collisionCounter,
+        spawnCounterOld=spawnCounter,
+        secondsOld=0;
+
+        paused=[false, true];
         
     Drawing.font="17px Arial";
     
@@ -76,7 +76,7 @@ function gameStuff(){
         Objects.drawAll();
     }
     var canSpawn=function(){
-        if (spawnCounter>=120) return false;
+        if (spawnCounter>=90) return false;
 
         var seconds=Math.floor( (Date.now()-starttime)/100 ),
             spawnInterval=25;// second/10
@@ -202,14 +202,12 @@ function spawner(){
             case 0:
                     w=h=35;
                     color="blue";
-                    //vx=-0.085-0.03*Math.random();
                     vx=-0.0425-0.015*Math.random();
                     break;
             case 1:
             case 2:
                     w=h=25;
                     color="red";
-                    //vx=-0.17-0.06*Math.random();
                     vx=-0.085-0.03*Math.random();
                     break;
             case 3:
@@ -217,12 +215,11 @@ function spawner(){
             case 5:
                     w=h=15;
                     color="green";
-                    //vx=-0.3-0.1*Math.random();
                     vx=-0.17-0.06*Math.random();
         }
         x=W;
         y=HeaderH+(H-HeaderH-h)*Math.random();
-        vy=0;
+        vy=0;//-0.05;
 		
         if (isSquare) Objects.add( new bRect(x, y, w, h, color, vx, vy) );
         if (isCircle) Objects.add( new bCircle(x+w/2, y+w/2, w/2, color, vx, vy) );
@@ -263,17 +260,19 @@ function bRect(x, y, w, h, color, vx, vy){
 		
         var out=false;
         if (x<-w && vx<0) out=true;
-        if (y<HeaderH || y+h>H){
+        /*if (y<HeaderH || y+h>H){
             y+= vy<0 ? 2*(HeaderH-y) : -2*(y+h-H);
             vy=-vy;
-        }
+        }*/
 		
         return out;
     }
     this.draw=function(){
         var temp=Drawing.fillStyle;
+        
         Drawing.fillStyle=color;
         Drawing.fillRect(x,y,w,h);
+        
         Drawing.fillStyle=temp;
     }
 }
@@ -306,11 +305,13 @@ function bCircle(x, y, r, color, vx, vy){
     }
     this.draw=function(){
         var temp=Drawing.fillStyle;
+        
         Drawing.fillStyle=color;
         Drawing.beginPath();
         Drawing.arc(x,y,r,0,Math.PI*2,true);
         Drawing.closePath();
         Drawing.fill();
+        
         Drawing.fillStyle=temp;
     }
 }
@@ -328,16 +329,16 @@ function player(){
     this.move=function(diff){
         xModifier=2;
         yFlag=0;
-        
+                
         if (Keys[UP] && !Keys[DOWN]){
             y-=v*diff;
             yFlag=1;
-            if (y<HeaderH) y=HeaderH;
+            if (y-h/8<HeaderH) y=HeaderH+h/8;
         }
         if (Keys[DOWN] && !Keys[UP]){
             y+=v*diff;
             yFlag=-1;
-            if (y+h>H) y=H-h;
+            if (y+h+h/8>H) y=H-h-h/8;
         }
         if (Keys[LEFT] && !Keys[RIGHT]){
             x-=v*diff;
@@ -347,11 +348,12 @@ function player(){
         if (Keys[RIGHT] && !Keys[LEFT]){
             x+=v*diff;
             xModifier=4;
-            if (x+w>W) x=W-w;
+            if (x+w+w/8>W) x=W-w-w/8;
         }
     }
     this.draw=function(){
         var temp=Drawing.fillStyle;
+        
         if (this.isHit){
             Drawing.fillStyle="white";
             Drawing.strokeStyle="black";
@@ -360,6 +362,8 @@ function player(){
             Drawing.fillStyle="orange";
             Drawing.strokeStyle="brown";
         }
+        
+        //back fire
         Drawing.beginPath();
         Drawing.moveTo(x,y+h/8);
         Drawing.lineTo(x-xModifier*h/4,y+h/2);
@@ -368,6 +372,7 @@ function player(){
         Drawing.fill();
         Drawing.stroke();
         
+        //side fire
         switch (yFlag){
             case 0: break;
             case 1:
@@ -389,6 +394,7 @@ function player(){
                     Drawing.stroke();
         }
         
+        //body
         if (this.isHit) Drawing.fillStyle="#FFCC00";
         else Drawing.fillStyle=color;
         Drawing.beginPath();
@@ -399,6 +405,7 @@ function player(){
         Drawing.lineTo(x, y+h+h/8);
         Drawing.closePath();
         Drawing.fill();
+        
         Drawing.fillStyle=temp;
     }
 }
@@ -406,10 +413,7 @@ function player(){
 //OBJECT MANAGER CLASS
 function objectManager(){
     var Player=new player(),
-        blue=[],
-        red=[],
-        green=[],
-        all={ blue:blue, red:red, green:green };
+        all={ blue:[], red:[], green:[] };
 	
     this.add=function(obj){
         all[ obj.getColor() ].push(obj);
@@ -430,10 +434,16 @@ function objectManager(){
         }
     }
     this.drawAll=function(){
-        for (var i in blue) blue[i].draw();
-        for (var i in red) red[i].draw();
-        for (var i in green) green[i].draw();
+        Drawing.save();
+        Drawing.rect(0,HeaderH,W,H-HeaderH);
+        Drawing.clip();
+        
+        for (var i in all.blue) all.blue[i].draw();
+        for (var i in all.red) all.red[i].draw();
+        for (var i in all.green) all.green[i].draw();
         Player.draw();
+        
+        Drawing.restore();
     }
     this.checkCollisions=function(){
         var sum=0, playerHit=false,
