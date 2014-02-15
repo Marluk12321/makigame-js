@@ -25,241 +25,277 @@
     </div>
 
 <script>
-//todo: collectables for score: score?!, player2?: colliding/blocking?, "turning": v+angle, "3d" player movement+collisions? and/or object transitions+animation
+// todo: collectables for score: score?!, player2?: colliding/blocking?, "turning": v+angle, "3d" player movement+collisions? and/or object transitions+animation
 
-//GLOBALS, START
-var canvas=document.getElementById("canid"),
-	
-    W=canvas.width, H=canvas.height, HeaderH=27,
-    UP=38, DOWN=40, LEFT=37, RIGHT=39, 
-    P=80, R=82, SHIFT=16,
-
-    Keys={};
+// GLOBALS, START
+var canvas = document.getElementById("canid"),
+    W = canvas.width,
+    H = canvas.height,
+    HeaderH = 27,
+    
+    // keyboard key codes:
+    UP = 38,
+    DOWN = 40,
+    LEFT = 37,
+    RIGHT = 39,
+    
+    P = 80,
+    R = 82,
+    
+    Keys = {};
 addEventListener("keydown",
-                 function(e){Keys[e.keyCode]=true}
+                 function(e){Keys[e.keyCode] = true}
                  ,false);
 addEventListener("keyup",
-                 function(e){Keys[e.keyCode]=false}
+                 function(e){Keys[e.keyCode] = false}
                  ,false);              
 
-var Drawing=canvas.getContext("2d"),
+var Drawing = canvas.getContext("2d"),
 
-    Objects=new objectManager(),
-    Spawner=new spawner(),
-    Game=new gameStuff();
+    Objects = new objectManager(),
+    Spawner = new spawner(),
+    Game = new gameStuff();
 	
 Game.start();
 
-//GAME CLASS
+// GAME CLASS
 function gameStuff(){
-    var starttime=then=Date.now(),
-        interval, spawnFlag=false,
-        collisionCounter=spawnCounter=0,
-
-        collisionCounterOld=collisionCounter,
-        spawnCounterOld=spawnCounter,
-        secondsOld=0;
-
-        paused=[false, true];
+    var starttime = then = Date.now(),  // 'then' used for deltatime
+        interval,                       // for storing main loop interval
+        spawnFlag = false,              // for enemy spawn permission
+        collisionCounter = 0,
+        spawnCounter = 0,
         
-    Drawing.font="17px Arial";
+        // for background draw changes
+        collisionCounterOld = collisionCounter,
+        spawnCounterOld = spawnCounter,
+        secondsOld = 0,
+        
+        // flags for game pause
+        paused = [false, true];
+        
+    Drawing.font = "17px Arial";
     
-    var restart=function(){
-        starttime=then=Date.now();
-        collisionCounter=spawnCounter=0;
-        spawnFlag=false;
-        paused=[false, true];
+    var restart = function(){
+        starttime = then = Date.now();
+        collisionCounter = spawnCounter = 0;
+        spawnFlag = false;
+        paused = [false, true];
 
-        Objects=new objectManager();
-        collisionCounter+=Objects.checkCollisions();
+        Objects = new objectManager();
+        collisionCounter += Objects.checkCollisions();
         drawBG(false);
         Objects.drawAll();
     }
-    var canSpawn=function(){
-        if (spawnCounter>=90) return false;
+    // premission for spawning enemies
+    var canSpawn = function(){
+        if (spawnCounter >= 90) return false;
 
-        var seconds=Math.floor( (Date.now()-starttime)/100 ),
-            spawnInterval=25;// second/10
+        var seconds = Math.floor( (Date.now()-starttime) / 100 ),
+            spawnInterval = 25; //deciseconds
+
+        // returns true every time the interval passes
+        // 'spawnflag' used to limit 1 spawn in the decisecond
         if (seconds%spawnInterval===0 && seconds>0)
-                if(!spawnFlag){
-                        spawnFlag=true;
+                if( !spawnFlag ){
+                        spawnFlag = true;
                         return true;
                 }else return false;
         else{
-                spawnFlag=false;
+                spawnFlag = false;
                 return false;
         }
     }
-    var getDeltaTime=function(){
-        var now=Date.now(),
-            delta=now-then;
-        then=now;
+    // returns miliseconds passed since last call
+    var getDeltaTime = function(){
+        var now = Date.now(),
+            delta = now - then;
+        then = now;
         return delta;
     }
-    var drawBG=function(isFirst){
+    var drawBG = function(isFirst){
+        // first time running function
         if (isFirst){
-            Drawing.fillStyle="#CC6633";
-            Drawing.fillRect(0,0,W,25);
-            Drawing.fillStyle="black";
-            Drawing.fillRect(0,25,W,2);
-
-            Drawing.textAlign="left";
-            Drawing.fillText("Lives: "+
-                    (collisionCounter>0 ? "0"+(10-collisionCounter) : 10-collisionCounter)+
-                    "     Enemies: "+spawnCounter,4,18);
-
-            var time=Date.now()-starttime,
-                    minutes=Math.floor( (time/1000)/60 ),
-                    seconds=Math.floor( (time/1000) )%60;
-            Drawing.textAlign="right";
-            Drawing.fillText("Time elapsed: "+
-                    ( minutes<10 ? "0"+minutes : minutes )+":"+( seconds<10 ? "0"+seconds : seconds ),
-                    W-4,18);		
+            // background for header
+            Drawing.fillStyle = "#CC6633";
+            Drawing.fillRect(0, 0, W, 25);
+            // black line
+            Drawing.fillStyle = "black";
+            Drawing.fillRect(0, 25, W, 2);
+            
+            // lives remaining and enemies spawned counter display
+            Drawing.textAlign = "left";
+            Drawing.fillText("Lives: " +
+                    ( collisionCounter>0 ? "0"+(10-collisionCounter) : 10-collisionCounter ) +
+                    "     Enemies: " + spawnCounter, 4, 18);
+            
+            // time elapsed display
+            var time = Date.now() - starttime,
+                    minutes = Math.floor( (time/1000) / 60 ),
+                    seconds = Math.floor( (time/1000) ) % 60;
+            Drawing.textAlign = "right";
+            Drawing.fillText("Time elapsed: " +
+                    ( minutes<10 ? "0"+minutes : minutes ) + ":" + ( seconds<10 ? "0"+seconds : seconds ),
+                    W-4, 18);		
         }
-        if ( collisionCounter!==collisionCounterOld ){
-            collisionCounterOld=collisionCounter;
+        // draws if collision counter changed
+        if ( collisionCounter !== collisionCounterOld ){
+            collisionCounterOld = collisionCounter;
 
-            Drawing.fillStyle="#CC6633";
-            Drawing.fillRect(51,6,21,12);
+            Drawing.fillStyle = "#CC6633";
+            Drawing.fillRect(51, 6, 21, 12);
 
-            Drawing.fillStyle="black";
-            Drawing.textAlign="left";
+            Drawing.fillStyle = "black";
+            Drawing.textAlign = "left";
             Drawing.fillText( (collisionCounter>0 ? "0"+(10-collisionCounter) : 10-collisionCounter),
-                    51,18);
+                    51, 18);
         }
-        if ( spawnCounter!==spawnCounterOld ){
-            spawnCounterOld=spawnCounter;
+        // draws if spawn counter changed
+        if ( spawnCounter !== spawnCounterOld ){
+            spawnCounterOld = spawnCounter;
 
-            Drawing.fillStyle="#CC6633";
-            Drawing.fillRect(167,6,29,12);
+            Drawing.fillStyle = "#CC6633";
+            Drawing.fillRect(167, 6, 29, 12);
 
-            Drawing.fillStyle="black";
-            Drawing.textAlign="left";
-            Drawing.fillText(spawnCounter,167,18);
+            Drawing.fillStyle = "black";
+            Drawing.textAlign = "left";
+            Drawing.fillText(spawnCounter, 167, 18);
         }
-
-        var time=Date.now()-starttime,
-                minutes=Math.floor( (time/1000)/60 ),
-                seconds=Math.floor( (time/1000) )%60;
-        if (minutes>=60) minutes=seconds=59;
-        if ( seconds!==secondsOld ){
-            secondsOld=seconds;
+        
+        var time = Date.now() - starttime,
+                minutes = Math.floor( (time/1000) / 60 ),
+                seconds = Math.floor( time/1000 ) % 60;
+        if (minutes >= 60) minutes = seconds = 59;
+        // draws if a second passed
+        if ( seconds !== secondsOld ){
+            secondsOld = seconds;
                     
-            Drawing.fillStyle="#CC6633";
-            Drawing.fillRect(W-46,6,42,12);
+            Drawing.fillStyle = "#CC6633";
+            Drawing.fillRect(W-46, 6, 42, 12);
 
-            Drawing.fillStyle="black";
-            Drawing.textAlign="right";
-            Drawing.fillText( ( minutes<10 ? "0"+minutes : minutes )+":"+( seconds<10 ? "0"+seconds : seconds ),
-                    W-4,18);
+            Drawing.fillStyle = "black";
+            Drawing.textAlign = "right";
+            Drawing.fillText( ( minutes<10 ? "0"+minutes : minutes ) + ":" + ( seconds<10 ? "0"+seconds : seconds ),
+                    W-4, 18);
         }
-		
-        Drawing.fillStyle="#FFCC99";
-        Drawing.fillRect(0,27,W,H-22);
+	
+        // main game background
+        Drawing.fillStyle = "#FFCC99";
+        Drawing.fillRect(0, 27, W, H-22);
     }
         
-    this.mainLoop=function(){
+    this.mainLoop = function(){
+        // game restart condition
         if (Keys[R]) restart();
-        if ( collisionCounter>=10 ){
-            return;
-        }
+        // game end condition
+        if ( collisionCounter >= 10 ){ return; }
+        // game pause condition
+        /* Keys[P] P is pressed
+         * paused[0] game is paused
+         * !paused[1] waiting for P to be released */
         if (Keys[P] || paused[0] || !paused[1]){
-            if (!Keys[P]) paused[1]=true;
-            if (Keys[P] && paused[1])
-            {
-                paused[0]=!paused[0];
-                paused[1]=false;
-                if (!paused[0]) starttime+=getDeltaTime();
+            if (!Keys[P]) paused[1] = true;
+            if (Keys[P] && paused[1]){
+                paused[0] = !paused[0];
+                paused[1] = false;
+                /* unpause:
+                 * adds pause time to starttime for calulations
+                 * deltatime resets */
+                if (!paused[0]) starttime += getDeltaTime();
             }
             if (paused[0]) return;
         }
 
         Objects.moveAll(getDeltaTime());
         if ( canSpawn() ) Spawner.spawnRandom(3);
-        collisionCounter+=Objects.checkCollisions();
+        collisionCounter += Objects.checkCollisions();
 
         drawBG(false);
         Objects.drawAll();
     }
-    this.start=function(){
-        collisionCounter+=Objects.checkCollisions();
+    this.start = function(){
+        collisionCounter += Objects.checkCollisions();
         drawBG(true);
         Objects.drawAll();
         
-        var temp=this;
-        interval=setInterval( function(){ return temp.mainLoop() } ,1);
+        var temp = this;
+        interval = setInterval( function(){ return temp.mainLoop() }, 1);
     }
-    this.spawned=function(num){ spawnCounter+=num }
-    this.despawned=function(num){ spawnCounter-=num }
+    this.spawned = function(num){ spawnCounter += num }
+    this.despawned = function(num){ spawnCounter -= num }
 }
 
-//SPAWNER CLASS
+// SPAWNER CLASS
 function spawner(){
-    var spawnSquareOrCircle=function(isSquare, isCircle){
-        var x, y, w, h, color, vx, vy;
-		
+    var spawnSquareOrCircle = function(isSquare, isCircle){
+        var x, y, w, h,
+            color,
+            vx, vy;
+	
+        // managing spawn chance for each enemy type
         switch ( Math.floor(Math.random()*6) ){
             case 0:
-                    w=h=35;
-                    color="blue";
-                    vx=-0.0425-0.015*Math.random();
+                    w = h = 35;
+                    color = "blue";
+                    vx = -0.0425 - 0.015*Math.random();
                     break;
             case 1:
             case 2:
-                    w=h=25;
-                    color="red";
-                    vx=-0.085-0.03*Math.random();
+                    w = h = 25;
+                    color = "red";
+                    vx = -0.085 - 0.03*Math.random();
                     break;
             case 3:
             case 4:
             case 5:
-                    w=h=15;
-                    color="green";
-                    vx=-0.17-0.06*Math.random();
+                    w = h = 15;
+                    color = "green";
+                    vx = -0.17 - 0.06*Math.random();
         }
-        x=W;
-        y=HeaderH+(H-HeaderH-h)*Math.random();
-        vy=0;//-0.05;
+        x = W;
+        y = HeaderH + (H-HeaderH-h)*Math.random();
+        vy = 0;
 		
         if (isSquare) Objects.add( new bRect(x, y, w, h, color, vx, vy) );
         if (isCircle) Objects.add( new bCircle(x+w/2, y+w/2, w/2, color, vx, vy) );
     }
 	
-    this.spawnSquare=function(num){
+    this.spawnSquare = function(num){
         for (var i=0; i<num; i++)
             spawnSquareOrCircle(true, false);
         Game.spawned(num);
     }
-    this.spawnCircle=function(num){
+    this.spawnCircle = function(num){
         for (var i=0; i<num; i++)
             spawnSquareOrCircle(false, true);
         Game.spawned(num);
     }
-    this.spawnRandom=function(num){
+    this.spawnRandom = function(num){
         for (var i=0; i<num; i++){
-            var flag=Math.floor(Math.random()*2);
+            var flag = Math.floor(Math.random() * 2); // = 0 or 1
             spawnSquareOrCircle(flag, !flag);
         }
         Game.spawned(num);
     }
 }
 
-//RECT CLASS
+// RECT CLASS
 function bRect(x, y, w, h, color, vx, vy){
-    var x=x, y=y,
-        w=w, h=h, color=color,
-        vx=vx, vy=vy;
-    this.collided=false;
+    var x = x, y = y,       // coords
+        w = w, h = h,       // width, height
+        color = color,
+        vx = vx, vy = vy;   // x, y direction speed
+    this.collided = false;  // collision with player, so it counts only once
 	
-    this.getSides=function(){ return {left:x, top:y, right:x+w, bottom:y+h} }
-    this.getColor=function(){ return color }
+    this.getSides = function(){ return {left: x, top: y, right: x+w, bottom: y+h} }
+    this.getColor = function(){ return color }
 	
-    this.move=function(diff){
-        x+=vx*diff;
-        y+=vy*diff;
+    this.move = function(diff){
+        x += vx * diff;
+        y += vy * diff;
 		
-        var out=false;
-        if (x<-w && vx<0) out=true;
+        var out = false;
+        if (x<-w && vx<0) out = true;
         /*if (y<HeaderH || y+h>H){
             y+= vy<0 ? 2*(HeaderH-y) : -2*(y+h-H);
             vy=-vy;
@@ -267,175 +303,193 @@ function bRect(x, y, w, h, color, vx, vy){
 		
         return out;
     }
-    this.draw=function(){
-        var temp=Drawing.fillStyle;
+    this.draw = function(){
+        var temp = Drawing.fillStyle;
         
-        Drawing.fillStyle=color;
-        Drawing.fillRect(x,y,w,h);
+        Drawing.fillStyle = color;
+        Drawing.fillRect(x, y, w, h);
         
-        Drawing.fillStyle=temp;
+        Drawing.fillStyle = temp;
     }
 }
 
-//CIRCLE CLASS
+// CIRCLE CLASS
 function bCircle(x, y, r, color, vx, vy){
-    var x=x, y=y,
-        r=r, color=color,
-        vx=vx, vy=vy;
-    this.collided=false;
+    var x = x, y = y,       // coords
+        r = r,              // radius
+        color = color,
+        vx = vx, vy = vy;   // x, y direction speed
+    this.collided = false;  // collision with player, so it counts only once
 	
-    this.getSides=function(){
-        var aprox=0.8;
-        return {left:x-r*aprox, top:y-r*aprox, right:x+r*aprox, bottom:y+r*aprox};
+    this.getSides = function(){
+        // aproximating circle as square, side = 0.8 * 2*r
+        var aprox = 0.8;
+        return {left: x-r*aprox, top: y-r*aprox, right: x+r*aprox, bottom: y+r*aprox};
     }
-    this.getColor=function(){ return color }
+    this.getColor = function(){ return color }
 	
-    this.move=function(diff){
-        x+=vx*diff;
-        y+=vy*diff;
+    this.move = function(diff){
+        x += vx * diff;
+        y += vy * diff;
 
-        var out=false;
-        if (x<-r && vx<0) out=true;
-        if (y<HeaderH+r || y+r>H){
-            y+= vy<0 ? 2*(HeaderH+r-y) : -2*(y+r-H);
-            vy=-vy;
-        }
+        var out = false;
+        if (x<-r && vx<0) out = true;
+        /*if (y < HeaderH+r || y+r > H){
+            y += vy<0 ? 2*(HeaderH+r-y) : -2*(y+r-H);
+            vy = -vy;
+        }*/
 		
         return out;
     }
-    this.draw=function(){
-        var temp=Drawing.fillStyle;
+    this.draw = function(){
+        var temp = Drawing.fillStyle;
         
-        Drawing.fillStyle=color;
+        Drawing.fillStyle = color;
         Drawing.beginPath();
-        Drawing.arc(x,y,r,0,Math.PI*2,true);
+        Drawing.arc(x, y, r, 0, Math.PI*2, true);
         Drawing.closePath();
         Drawing.fill();
         
-        Drawing.fillStyle=temp;
+        Drawing.fillStyle = temp;
     }
 }
 
 //PLAYER CLASS
 function player(){
-    var x=W/5-18, y=Math.floor( HeaderH+(H-HeaderH)/2-13 ),
-        w=32, h=16, color="gray",
-        v=0.125,
-        xModifier=2, yFlag=0;
-    this.isHit=false;
+    var w = 32, h = 16,             // width, height
+        // coords set to middle of screen
+        x = W/5 - w/2,
+        y = Math.floor( HeaderH + (H-HeaderH)/2 - h/2 ),
+        
+        color = "gray",
+        v = 0.125,                  // speed     
+        xModifier = 2, yFlag = 0;   // used for flame drawing
+    this.isHit = false;
 	
-    this.getSides=function(){ return {left:x, top:y, right:x+w, bottom:y+h} }
+    this.getSides = function(){ return {left: x, top: y, right: x+w, bottom: y+h} }
 	
-    this.move=function(diff){
-        xModifier=2;
-        yFlag=0;
+    this.move = function(diff){
+        xModifier = 2;
+        yFlag = 0;
                 
         if (Keys[UP] && !Keys[DOWN]){
-            y-=v*diff;
-            yFlag=1;
-            if (y-h/8<HeaderH) y=HeaderH+h/8;
+            y -= v * diff;
+            yFlag = 1;
+            if (y-h/8 < HeaderH) y = HeaderH+h/8;
         }
         if (Keys[DOWN] && !Keys[UP]){
-            y+=v*diff;
-            yFlag=-1;
-            if (y+h+h/8>H) y=H-h-h/8;
+            y += v * diff;
+            yFlag = -1;
+            if (y+h+h/8 > H) y = H - h - h/8;
         }
         if (Keys[LEFT] && !Keys[RIGHT]){
-            x-=v*diff;
-            xModifier=1;
-            if (x<0) x=0;
+            x -= v * diff;
+            xModifier = 1;
+            if (x < 0) x = 0;
         }
         if (Keys[RIGHT] && !Keys[LEFT]){
-            x+=v*diff;
-            xModifier=4;
-            if (x+w+w/8>W) x=W-w-w/8;
+            x += v * diff;
+            xModifier = 4;
+            if (x+w+w/8 > W) x = W - w - w/8;
         }
     }
-    this.draw=function(){
-        var temp=Drawing.fillStyle;
+    this.draw = function(){
+        var temp = Drawing.fillStyle;
         
         if (this.isHit){
-            Drawing.fillStyle="white";
-            Drawing.strokeStyle="black";
+            Drawing.fillStyle = "white";
+            Drawing.strokeStyle = "black";
         }
         else{
-            Drawing.fillStyle="orange";
-            Drawing.strokeStyle="brown";
+            Drawing.fillStyle = "orange";
+            Drawing.strokeStyle = "brown";
         }
         
-        //back fire
+        /* xModifier: 1 - moving back
+         *            2 - standing
+         *            4 - moving forward
+         * yFlag:     0 - standing
+         *            1 - moving up
+         *            2 - moving down */
+        
+        // back fire
         Drawing.beginPath();
-        Drawing.moveTo(x,y+h/8);
-        Drawing.lineTo(x-xModifier*h/4,y+h/2);
-        Drawing.lineTo(x,y+7*h/8);
+        Drawing.moveTo(x, y + h/8);
+        Drawing.lineTo(x - xModifier*h/4, y + h/2);
+        Drawing.lineTo(x, y + 7*h/8);
         Drawing.closePath();
         Drawing.fill();
         Drawing.stroke();
         
-        //side fire
+        // side fire
         switch (yFlag){
             case 0: break;
             case 1:
                     Drawing.beginPath();
-                    Drawing.moveTo(x+2*w/8,y+h);
-                    Drawing.lineTo(x+3*w/8,y+h+3+h/8);
-                    Drawing.lineTo(x+4*w/8,y+h);
+                    Drawing.moveTo(x + 2*w/8, y + h);
+                    Drawing.lineTo(x + 3*w/8, y + h + 3*h/8);
+                    Drawing.lineTo(x + 4*w/8 , y + h);
                     Drawing.closePath();
                     Drawing.fill();
                     Drawing.stroke();
                     break;
             case -1:
                     Drawing.beginPath();
-                    Drawing.moveTo(x+2*w/8,y);
-                    Drawing.lineTo(x+3*w/8,y-3*h/8);
-                    Drawing.lineTo(x+4*w/8,y);
+                    Drawing.moveTo(x + 2*w/8, y);
+                    Drawing.lineTo(x + 3*w/8, y - 3*h/8);
+                    Drawing.lineTo(x + 4*w/8, y);
                     Drawing.closePath();
                     Drawing.fill();
                     Drawing.stroke();
         }
         
-        //body
-        if (this.isHit) Drawing.fillStyle="#FFCC00";
-        else Drawing.fillStyle=color;
+        // body
+        if (this.isHit) Drawing.fillStyle = "#FFCC00";
+        else Drawing.fillStyle = color;
         Drawing.beginPath();
-        Drawing.moveTo(x,y-h/8);
-        Drawing.lineTo(x+w-w/8, y);
-        Drawing.lineTo(x+w+w/8, y+h/2);
-        Drawing.lineTo(x+w-w/8, y+h);
-        Drawing.lineTo(x, y+h+h/8);
+        Drawing.moveTo(x, y - h/8);
+        Drawing.lineTo(x + w - w/8, y);
+        Drawing.lineTo(x + w + w/8, y + h/2);
+        Drawing.lineTo(x + w - w/8, y + h);
+        Drawing.lineTo(x, y + h + h/8);
         Drawing.closePath();
         Drawing.fill();
         
-        Drawing.fillStyle=temp;
+        Drawing.fillStyle = temp;
     }
 }
 
-//OBJECT MANAGER CLASS
+// OBJECT MANAGER CLASS
 function objectManager(){
-    var Player=new player(),
-        all={ blue:[], red:[], green:[] };
+    var Player = new player(),
+        // enemies sorted by type/color
+        all={ blue: [], red: [], green: [] };
 	
     this.add=function(obj){
         all[ obj.getColor() ].push(obj);
     }
-    this.moveAll=function(diff){
-        var num=0;
+    this.moveAll = function(diff){
+        var num = 0; // for couting despawned enemies
 
         for (var i in all)
             for (var j in all[i])
+                // remove enemy out of screen
                 if ( all[i][j].move(diff) ){
                     all[i].splice(j,1);
                     num++;
                 }
         Player.move(diff);
+        
+        // respawn despawned enemies
         if (num){
             Game.despawned(num);
             Spawner.spawnRandom(num);
         }
     }
-    this.drawAll=function(){
+    this.drawAll = function(){
+        // clipping - no drawing over header
         Drawing.save();
-        Drawing.rect(0,HeaderH,W,H-HeaderH);
+        Drawing.rect(0, HeaderH, W, H-HeaderH);
         Drawing.clip();
         
         for (var i in all.blue) all.blue[i].draw();
@@ -445,22 +499,29 @@ function objectManager(){
         
         Drawing.restore();
     }
-    this.checkCollisions=function(){
-        var sum=0, playerHit=false,
-            pSides=Player.getSides(),
+    this.checkCollisions = function(){
+        var sum = 0,    // for counting all new collisions
+            playerHit = false,
+            pSides = Player.getSides(),
             other;
+    
         for (var i in all)
             for (var j in all[i]){
-                other=all[i][j].getSides();
-                if ( other.left<pSides.right && other.top<pSides.bottom && other.right>pSides.left && other.bottom>pSides.top ){
+                other = all[i][j].getSides();
+                //collsion condition
+                if ( other.left<pSides.right &&
+                     other.top<pSides.bottom &&
+                     other.right>pSides.left &&
+                     other.bottom>pSides.top ){
+                 
                     if (!all[i][j].collided){
-                        all[i][j].collided=true;
+                        all[i][j].collided = true;
                         sum++;						
                     }
-                    playerHit=true;
-                }else if (all[i][j].collided) all[i][j].collided=false;
+                    playerHit = true;
+                }else if (all[i][j].collided) all[i][j].collided = false;
             }
-        Player.isHit=playerHit;
+        Player.isHit = playerHit;
         return sum;
     }
 }
