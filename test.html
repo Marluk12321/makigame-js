@@ -25,7 +25,7 @@
     </div>
 
 <script>
-// todo: collectables for score: score?!, player2?: colliding/blocking?, "turning": v+angle, "3d" player movement+collisions? and/or object transitions+animation
+// todo: mouse controls?, collectables for score: score?!, player2?: colliding/blocking?, "turning": v+angle, "3d" player movement+collisions? and/or object transitions+animation
 
 // GLOBALS, START
 var canvas = document.getElementById("canid"),
@@ -113,6 +113,49 @@ function gameStuff(){
         then = now;
         return delta;
     }
+    // handles pause - unpaused transitions, paused
+    var handlePause = function(){
+        if (!Keys[P]) paused[1] = true;
+        if (Keys[P] && paused[1]){
+            paused[0] = !paused[0];
+            paused[1] = false;
+            // pause: draw PAUSED sign
+            if (paused[0]){
+                var tempFS = Drawing.fillStyle,
+                    tempSS = Drawing.strokeStyle,
+                    tempF = Drawing.font,
+                    tempTA = Drawing.textAlign;
+
+                    w = 110, h = 40; // rect width/height
+
+                Drawing.fillStyle = "#CC6633";
+                Drawing.fillRect(W/2 - w/2, H/2 + HeaderH - h/2, w, h);
+                Drawing.strokeStyle = "black";
+                Drawing.beginPath();
+                Drawing.rect(W/2 - w/2, H/2 + HeaderH - h/2, w, h);
+                Drawing.closePath();
+                Drawing.stroke();
+
+                Drawing.fillStyle = "black";
+                Drawing.font = "20px Arial";
+                Drawing.textAlign = "center";
+                Drawing.fillText("PAUSED",
+                                W/2, H/2 + HeaderH + 7);
+
+                Drawing.fillStyle = tempFS;
+                Drawing.strokeStyle = tempSS;
+                Drawing.font = tempF;
+                Drawing.textAlign = tempTA;
+            }
+            /* unpause:
+             * adds pause time to starttime for calulations
+             * deltatime resets */
+            if (!paused[0]) starttime += getDeltaTime();
+        }
+        // returns true if the game is paused, false if not
+        if (paused[0]) return true;
+        else return false;
+    }
     var drawBG = function(isFirst){
         // first time running function
         if (isFirst){
@@ -188,23 +231,14 @@ function gameStuff(){
         // game restart condition
         if (Keys[R]) restart();
         // game end condition
-        if ( collisionCounter >= 10 ){ return; }
+        if ( collisionCounter >= 10 ) return;
         // game pause condition
-        /* Keys[P] P is pressed
-         * paused[0] game is paused
-         * !paused[1] waiting for P to be released */
-        if (Keys[P] || paused[0] || !paused[1]){
-            if (!Keys[P]) paused[1] = true;
-            if (Keys[P] && paused[1]){
-                paused[0] = !paused[0];
-                paused[1] = false;
-                /* unpause:
-                 * adds pause time to starttime for calulations
-                 * deltatime resets */
-                if (!paused[0]) starttime += getDeltaTime();
-            }
-            if (paused[0]) return;
-        }
+        /* Keys[P]: P is pressed
+         * paused[0]: game is paused
+         * !paused[1]: waiting for P to be released */
+        if (Keys[P] || paused[0] || !paused[1])
+            var isPaused = handlePause();
+        if (isPaused) return;
 
         Objects.moveAll(getDeltaTime());
         if ( canSpawn() ) Spawner.spawnRandom(3);
