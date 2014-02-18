@@ -25,8 +25,9 @@
     </div>
 
 <script>
-/* todo: "turning": v+angle, 3d object transitions+animation
- * collectables for score: score?! (collect -> shoot cooldown "time remaining:"+visual bar under player, shoot for score (bigger turn into smaller), no shoot = overwhealmed - needs balancing)
+/* todo: 3d object transitions+animation
+ * collectables for score: score?!
+ * (collect 1 -> shoot cooldown "time remaining:"+visual bar under player, shoot for score (bigger turn into smaller), no shoot = overwhealmed - needs balancing; collect more -> stacking for epicness)
  * player2?: colliding/blocking?, mouse controls? (menu only imo) */
 
 // GLOBALS, START
@@ -66,8 +67,9 @@ function gameStuff(){
         interval,                       // for storing main loop interval
         spawnFlag = false,              // for enemy spawn permission
         turnFlag = false,               // for enemy turning permission
-        collisionCounter = 0,
-        spawnCounter = 0,
+        collisionCounter = 0,           // counts player collisions, lives = 10 - collisions
+        spawnCounter = 0,               // counts spawned enemies
+        endFlag = false,                // game over flag
         
         // for background draw changes
         collisionCounterOld = collisionCounter,
@@ -80,12 +82,15 @@ function gameStuff(){
     Drawing.font = "17px Arial";
     
     var restart = function(){
+        // reset timers, counters and flags
         startTime = then = Date.now();
         collisionCounter = spawnCounter = 0;
         spawnFlag = false,
         turnFlag = false,
+        endFlag = false,
         paused = [false, true];
-
+        
+        // reset objects
         Objects = new objectManager();
         collisionCounter += Objects.checkCollisions();
         drawBG(false);
@@ -129,7 +134,7 @@ function gameStuff(){
                 var tempFS = Drawing.fillStyle,
                     tempSS = Drawing.strokeStyle,
                     tempF = Drawing.font,
-                    tempTA = Drawing.textAlign;
+                    tempTA = Drawing.textAlign,
 
                     w = 110, h = 40; // rect width/height
 
@@ -160,6 +165,36 @@ function gameStuff(){
         // returns true if the game is paused, false if not
         if (paused[0]) return true;
         else return false;
+    }
+    var gameOver = function(){
+        // draws GAME OVER sign
+        var tempFS = Drawing.fillStyle,
+            tempSS = Drawing.strokeStyle,
+            tempF = Drawing.font,
+            tempTA = Drawing.textAlign,
+
+            w = 140, h = 40; // rect width/height
+        
+        Drawing.fillStyle = "#CC6633";
+        Drawing.fillRect(W/2 - w/2, H/2 + HeaderH - h/2, w, h);
+        Drawing.strokeStyle = "black";
+        Drawing.beginPath();
+        Drawing.rect(W/2 - w/2, H/2 + HeaderH - h/2, w, h);
+        Drawing.closePath();
+        Drawing.stroke();
+
+        Drawing.fillStyle = "black";
+        Drawing.font = "20px Arial";
+        Drawing.textAlign = "center";
+        Drawing.fillText("GAME OVER",
+                        W/2, H/2 + HeaderH + 7);
+
+        Drawing.fillStyle = tempFS;
+        Drawing.strokeStyle = tempSS;
+        Drawing.font = tempF;
+        Drawing.textAlign = tempTA;
+        
+        endFlag = true;
     }
     var drawBG = function(isFirst){
         // first time running function
@@ -236,7 +271,8 @@ function gameStuff(){
         // game restart condition
         if (Keys[R]) restart();
         // game end condition
-        if ( collisionCounter >= 10 ) return;
+        if ( collisionCounter>=10 && !endFlag ) gameOver();
+        if ( endFlag ) return;
         // game pause condition
         /* Keys[P]: P is pressed
          * paused[0]: game is paused
