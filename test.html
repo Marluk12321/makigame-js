@@ -22,16 +22,18 @@
                 <td>Pause: P</td>
             </tr>
         </table>
+        <p id="errorlog"></p>
     </div>
 
 <script>
-/* todo: 3d object transitions+animation
+/* todo: split classes into files
  * collectables for score: score?!
  * (collect 1 -> shoot cooldown "time remaining:"+visual bar under player, shoot for score (bigger turn into smaller), no shoot = overwhealmed - needs balancing; collect more -> stacking for epicness)
  * player2?: colliding/blocking?, mouse controls? (menu only imo) */
 
 // GLOBALS, START
 var canvas = document.getElementById("canid"),
+    errorolog = document.getElementById("errorlog"),
     W = canvas.width,
     H = canvas.height,
     HeaderH = 27,
@@ -367,6 +369,37 @@ function spawner(){
         }
         Game.spawned(num);
     }
+    this.spawnMorphed = function( type, x, y, targetDimension, targetSpeed ){
+        var x = x, y = y,                       // coords
+            w = targetDimension,                // width
+            h = targetDimension,                // height
+            v = targetSpeed,                    // speed
+            angle = Objects.getCurrentAngle(),  // moving angle
+            color;
+        
+        switch (targetDimension){
+            case 35:
+            case 35/2:
+                    color = "blue";
+                    break;
+            case 25:
+            case 25/2:
+                    color = "red";
+                    break;
+            case 15:
+            case 15/2:
+                    color = "green";
+        }
+        
+        switch (type){
+            case "rect":
+                Objects.add( new bRect(x, y, w, h, color, v, angle) );
+                break;
+            case "circle":
+                Objects.add( new bCircle(x, y, targetDimension, color, v, angle) );
+                break;
+        }
+    }
 }
 
 // RECT CLASS
@@ -378,12 +411,104 @@ function bRect(x, y, w, h, color, v, angle){
         angle = angle,      // moving angle
         // x, y direction speed
         vx = v * Math.cos( angle ),
-        vy = v * Math.sin( angle );
+        vy = v * Math.sin( angle ),
+        // morphing flags and data
+        morphing = false,
+        morphingComplete = false,
+        targetDimension,
+        targetSpeed,
+        targetSpeedDiff;
     this.collided = false;  // collision with player, so it counts only once
-	
+    
+    // info methods    
     this.getSides = function(){ return {left: x, top: y, right: x+w, bottom: y+h} }
     this.getColor = function(){ return color }
-	
+    
+    // morph methods
+    this.isMorphing = function(){ return morphing }
+    this.morphStart = function( morphingInto ){
+        morphing = true;
+        
+        // determine target size and speed
+        switch ( morphingInto ){
+            case "blue":
+                targetDimension = w + 10;
+                targetSpeed = v / 2;
+                break;
+            case "red":
+                switch ( color ){
+                    case "blue":
+                        targetDimension = w - 10;
+                        targetSpeed = v * 2;
+                        break;
+                    case "green":
+                        targetDimension = w + 10;
+                        targetSpeed = v / 2;
+                }
+                break;
+            case "green":
+                targetDimension = w - 10;
+                targetSpeed = v * 2;
+                break;
+        }
+        
+        // set speed difference
+        targetSpeedDiff = Math.abs( v - targetSpeed );
+        
+        // determine tranistion color
+        switch ( color ){
+            case "blue":
+                color = "purple";
+                break;
+            case "red":
+                switch ( morphingInto ){
+                    case "blue":
+                        color = "purple"
+                        break;
+                    case "green":
+                        color = "orange"
+                }
+                break;
+            case "green":
+                color = "orange";
+        }
+    }
+    var morphStep = function(diff){
+        var stepDuration = 2000, // ms
+            sizeStep = (10/stepDuration) * diff,
+            speedStep = (targetSpeedDiff/stepDuration) * diff,
+            done = false; // morphing done
+            
+        if (w < targetDimension){
+            // increase size
+            x -= sizeStep;
+            y -= sizeStep;
+            w += sizeStep;
+            h += sizeStep;
+            // decrease speed
+            v -= speedStep;
+            
+            if (w >= targetDimension) done = true;
+        }else if (w > targetDimension){
+            // decrease size
+            x += sizeStep;
+            y += sizeStep;
+            w -= sizeStep;
+            h -= sizeStep;
+            // increase speed
+            v += speedStep;
+            
+            if (w <= targetDimension) done = true;
+        }
+        
+        if (done){
+            morphingComplete = true;
+            Spawner.spawnMorphed("rect", x, y, targetDimension, targetSpeed);
+        }
+    }
+    this.morphEnd = function(){ return morphingComplete }
+    
+    // main methods
     this.move = function(diff, mainAngle){
         // adjust speed if angle changed
         var turningDuration = 2000; // ms
@@ -394,6 +519,9 @@ function bRect(x, y, w, h, color, v, angle){
             vx = v * Math.cos( angle );
             vy = v * Math.sin( angle );
         }
+        
+        // morphing
+        if (morphing && !morphingComplete) morphStep( diff );
         
         x += vx * diff;
         y += vy * diff;
@@ -414,6 +542,8 @@ function bRect(x, y, w, h, color, v, angle){
         Drawing.fillRect(x, y, w, h);
         
         Drawing.fillStyle = temp;
+        
+        //if (morphing) errorlog.innerHTML += w + "</br>"
     }
 }
 
@@ -426,16 +556,103 @@ function bCircle(x, y, r, color, v, angle){
         angle = angle,      // moving angle
         // x, y direction speed
         vx = v * Math.cos( angle ),
-        vy = v * Math.sin( angle );
+        vy = v * Math.sin( angle ),
+        // morphing flags and data
+        morphing = false,
+        morphingComplete = false,
+        targetDimension,
+        targetSpeed,
+        targetSpeedDiff;
     this.collided = false;  // collision with player, so it counts only once
-	
+    
+    
+    // info mehtods
     this.getSides = function(){
         // approximating circle as square, side = 0.8 * 2*r
         var approx = 0.8;
         return {left: x-r*approx, top: y-r*approx, right: x+r*approx, bottom: y+r*approx};
     }
     this.getColor = function(){ return color }
-	
+    
+    // morph methods
+    this.isMorphing = function(){ return morphing }
+    this.morphStart = function( morphingInto ){
+        morphing = true;
+        
+        // determine target size and speed
+        switch ( morphingInto ){
+            case "blue":
+                targetDimension = r + 5;
+                targetSpeed = v / 2;
+                break;
+            case "red":
+                switch ( color ){
+                    case "blue":
+                        targetDimension = r - 5;
+                        targetSpeed = v * 2;
+                        break;
+                    case "green":
+                        targetDimension = r + 5;
+                        targetSpeed = v / 2;
+                }
+                break;
+            case "green":
+                targetDimension = r - 5;
+                targetSpeed = v * 2;
+                break;
+        }
+        
+        // set speed difference
+        targetSpeedDiff = Math.abs( v - targetSpeed );
+        
+        // determine tranistion color
+        switch ( color ){
+            case "blue":
+                color = "purple";
+                break;
+            case "red":
+                switch ( morphingInto ){
+                    case "blue":
+                        color = "purple"
+                        break;
+                    case "green":
+                        color = "orange"
+                }
+                break;
+            case "green":
+                color = "orange";
+        }
+    }
+    var morphStep = function(diff){
+        var stepDuration = 2000, // ms
+            sizeStep = (5/stepDuration) * diff,
+            speedStep = (targetSpeedDiff/stepDuration) * diff,
+            done = false; // morphing done
+            
+        if (r < targetDimension){
+            // increase size
+            r += sizeStep;
+            // descrease speed
+            v -= speedStep;
+            
+            if (r >= targetDimension) done = true;
+        }else if (r > targetDimension){
+            // decrease size
+            r -= sizeStep;
+            // increase speed
+            v += speedStep;
+            
+            if (r <= targetDimension) done = true;
+        }
+        
+        if (done){
+            morphingComplete = true;
+            Spawner.spawnMorphed("circle", x, y, targetDimension, targetSpeed);
+        }
+    }
+    this.morphEnd = function(){ return morphingComplete }
+    
+    // main methods
     this.move = function(diff, mainAngle){
          // adjust speed if angle changed
         if ( angle !== mainAngle ){
@@ -443,6 +660,9 @@ function bCircle(x, y, r, color, v, angle){
             vx = v * Math.cos( angle );
             vy = v * Math.sin( angle );
         }
+        
+        // morphing
+        if (morphing && !morphingComplete) morphStep( diff );
         
         x += vx * diff;
         y += vy * diff;
@@ -466,6 +686,8 @@ function bCircle(x, y, r, color, v, angle){
         Drawing.fill();
         
         Drawing.fillStyle = temp;
+        
+        //if (morphing) errorlog.innerHTML += r + "</br>"
     }
 }
 
@@ -603,19 +825,39 @@ function objectManager(){
     var turn = function(){
         switch ( turningState ){
             case 0:
-                angle = 3 * Math.PI/4;
+                angle = 5 * Math.PI/6;
                 break;
             case 1:
                 angle = Math.PI;
                 break;
             case 2:
-                angle = 5 * Math.PI/4;
+                angle = 7 * Math.PI/6;
                 break;
             case 3:
                 angle = Math.PI;
         }
         
         turningState = (turningState+1)%4;
+    }
+    var morphRoll = function(){
+        var rollChance = 30000, // 1 in how many for success
+            rollResult = Math.floor( Math.random()*rollChance );
+        
+        // return true only if result == 0
+        return !rollResult;
+    }
+    var morphTargetRoll = function( morphingFrom ){
+        switch (morphingFrom){
+            case "blue":
+            case "green":
+                return "red";
+                
+            case "red":
+                var rollResult = Math.floor( Math.random()*2 ); // = 0 or 1
+                
+                if ( rollResult ) return "blue";
+                else return "green";
+        }
     }
         
     this.getCurrentAngle = function(){ return realAngle; }
@@ -633,21 +875,29 @@ function objectManager(){
             ( -(Math.PI/4)/turningDuration ) * diff ;
         }
         
-        var num = 0; // for couting despawned enemies
+        var outCount = 0; // for couting despawned enemies
         for (var i in all)
             for (var j in all[i])
                 // remove enemy out of screen
                 if ( all[i][j].move(diff, realAngle) ){
                     all[i].splice(j,1);
-                    num++;
+                    outCount++;
+                // morphing roll, if success start morphing
+                }else if ( !all[i][j].isMorphing() && morphRoll() ){
+                    var morphingFrom = all[i][j].getColor(),
+                        morphingInto = morphTargetRoll( morphingFrom );
+                    all[i][j].morphStart( morphingInto );
+                // if morphing done (it respawned), remove enemy
+                }else if ( all[i][j].isMorphing() && all[i][j].morphEnd() ){
+                    all[i].splice(j, 1);
                 }
         
         Player.move(diff);
         
         // respawn despawned enemies
-        if (num){
-            Game.despawned(num);
-            Spawner.spawnRandom(num);
+        if (outCount){
+            Game.despawned(outCount);
+            Spawner.spawnRandom(outCount);
         }
     }
     this.drawAll = function(){
