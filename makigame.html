@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Makigame 2.0</title>
+        <style>
+            table{border: 2px solid; margin: 15px}
+            body{font-family: Arial}
+            td{padding: 6px}
+        </style>
+    </head>
+
+    <body>
+        <div align="center">
+            <h1>MAKIGAME 2.0</h1>
+            <canvas id="canid" width="1000" height="577" style="border:3px solid black;">
+            </canvas>
+
+            <table border="1" cellspacing="2">
+                <tr>
+                    <td>Movement: Arrow Keys</td>
+                    <td>Restart: R</td>
+                    <td>Pause: P</td>
+                </tr>
+            </table>
+            <p id="errorlog"></p>
+        </div>
+
+        <script type="text/javascript" src="js/rect.js"></script>
+        <script type="text/javascript" src="js/circle.js"></script>
+        <script type="text/javascript" src="js/object_manager.js"></script>
+        <script type="text/javascript" src="js/spawner.js"></script>
+        <script type="text/javascript" src="js/player.js"></script>
+        <script type="text/javascript" src="js/game.js"></script>
+        <script>
+            /* 
+             * TODO:
+             * split classes into files
+             * collectables for score: score?!
+             * (collect 1 -> shoot cooldown "time remaining:"+visual bar under player,
+             *  shoot for score (bigger turn into smaller),
+             *  no shoot = overwhealmed - needs balancing;
+             *  collect more -> stacking for epicness)
+             * player2?: colliding/blocking?,
+             * mouse controls? (menu only imo)
+             */
+
+            // GLOBALS, START
+            var canvas = document.getElementById("canid"),
+                errorolog = document.getElementById("errorlog"),
+                W = canvas.width,
+                H = canvas.height,
+                HeaderH = 27,
+                
+                // keyboard key codes:
+                UP = 38,
+                DOWN = 40,
+                LEFT = 37,
+                RIGHT = 39,
+                
+                P = 80,
+                R = 82,
+                
+                Keys = {};
+            addEventListener("keydown",
+                            function(e){Keys[e.keyCode] = true},
+                            false);
+            addEventListener("keyup",
+                            function(e){Keys[e.keyCode] = false},
+                            false);              
+
+            var Drawing = canvas.getContext("2d"),
+
+                Objects = new objectManager(),
+                Spawner = new spawner(),
+                Game = new gameStuff();
+                
+            Game.start();
+        </script>
+    </body>
+</html>
