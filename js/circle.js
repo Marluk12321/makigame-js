@@ -136,8 +136,8 @@ function bCircle(x, y, r, color, v, angle) {
             out = true;
         }
         
-        if (y + r < HeaderH || y - r > H){
-            y = vy < 0 ? H + r : HeaderH - r;
+        if (y + r < HeaderH || y - r > canvas.height){
+            y = vy < 0 ? canvas.height + r : HeaderH - r;
         }
 		
         return out;

@@ -34,8 +34,9 @@
         <script>
             /* 
              * TODO:
-             * split classes into files
+             * get rid of globals
              * collectables for score: score?!
+             * interpolated speedup during morph
              * (collect 1 -> shoot cooldown "time remaining:"+visual bar under player,
              *  shoot for score (bigger turn into smaller),
              *  no shoot = overwhealmed - needs balancing;
@@ -47,8 +48,6 @@
             // GLOBALS, START
             var canvas = document.getElementById("canid"),
                 errorolog = document.getElementById("errorlog"),
-                W = canvas.width,
-                H = canvas.height,
                 HeaderH = 27,
                 
                 // keyboard key codes:
@@ -56,7 +55,6 @@
                 DOWN = 40,
                 LEFT = 37,
                 RIGHT = 39,
-                
                 P = 80,
                 R = 82,
                 

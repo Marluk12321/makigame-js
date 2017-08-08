@@ -106,7 +106,7 @@ function objectManager() {
     this.drawAll = function() {
         // clipping - no drawing over header
         Drawing.save();
-        Drawing.rect(0, HeaderH, W, H - HeaderH);
+        Drawing.rect(0, HeaderH, canvas.width, canvas.height - HeaderH);
         Drawing.clip();
         
         for (var i in all.blue) {

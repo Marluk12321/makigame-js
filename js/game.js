@@ -86,10 +86,10 @@ function gameStuff() {
                     w = 110, h = 40; // rect width/height
 
                 Drawing.fillStyle = "#CC6633";
-                Drawing.fillRect(W/2 - w/2, H/2 + HeaderH - h/2, w, h);
+                Drawing.fillRect(canvas.width/2 - w/2, canvas.height/2 + HeaderH - h/2, w, h);
                 Drawing.strokeStyle = "black";
                 Drawing.beginPath();
-                Drawing.rect(W/2 - w/2, H/2 + HeaderH - h/2, w, h);
+                Drawing.rect(canvas.width/2 - w/2, canvas.height/2 + HeaderH - h/2, w, h);
                 Drawing.closePath();
                 Drawing.stroke();
 
@@ -97,7 +97,7 @@ function gameStuff() {
                 Drawing.font = "20px Arial";
                 Drawing.textAlign = "center";
                 Drawing.fillText("PAUSED",
-                                W/2, H/2 + HeaderH + 7);
+                                canvas.width/2, canvas.height/2 + HeaderH + 7);
 
                 Drawing.fillStyle = tempFS;
                 Drawing.strokeStyle = tempSS;
@@ -129,10 +129,10 @@ function gameStuff() {
             w = 140, h = 40; // rect width/height
         
         Drawing.fillStyle = "#CC6633";
-        Drawing.fillRect(W/2 - w/2, H/2 + HeaderH - h/2, w, h);
+        Drawing.fillRect(canvas.width/2 - w/2, canvas.height/2 + HeaderH - h/2, w, h);
         Drawing.strokeStyle = "black";
         Drawing.beginPath();
-        Drawing.rect(W/2 - w/2, H/2 + HeaderH - h/2, w, h);
+        Drawing.rect(canvas.width/2 - w/2, canvas.height/2 + HeaderH - h/2, w, h);
         Drawing.closePath();
         Drawing.stroke();
 
@@ -140,7 +140,7 @@ function gameStuff() {
         Drawing.font = "20px Arial";
         Drawing.textAlign = "center";
         Drawing.fillText("GAME OVER",
-                        W/2, H/2 + HeaderH + 7);
+                        canvas.width/2, canvas.height/2 + HeaderH + 7);
 
         Drawing.fillStyle = tempFS;
         Drawing.strokeStyle = tempSS;
@@ -155,10 +155,10 @@ function gameStuff() {
         if (isFirst) {
             // background for header
             Drawing.fillStyle = "#CC6633";
-            Drawing.fillRect(0, 0, W, 25);
+            Drawing.fillRect(0, 0, canvas.width, 25);
             // black line
             Drawing.fillStyle = "black";
-            Drawing.fillRect(0, 25, W, 2);
+            Drawing.fillRect(0, 25, canvas.width, 2);
             
             // lives remaining and enemies spawned counter display
             Drawing.textAlign = "left";
@@ -173,7 +173,7 @@ function gameStuff() {
             Drawing.textAlign = "right";
             Drawing.fillText("Time elapsed: " +
                     (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds),
-                    W - 4, 18);	
+                    canvas.width - 4, 18);	
         }
         // draws if collision counter changed
         if (collisionCounter !== collisionCounterOld) {
@@ -210,17 +210,17 @@ function gameStuff() {
             secondsOld = seconds;
                     
             Drawing.fillStyle = "#CC6633";
-            Drawing.fillRect(W-46, 6, 42, 12);
+            Drawing.fillRect(canvas.width-46, 6, 42, 12);
 
             Drawing.fillStyle = "black";
             Drawing.textAlign = "right";
             Drawing.fillText((minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds),
-                    W-4, 18);
+                    canvas.width-4, 18);
         }
 	
         // main game background
         Drawing.fillStyle = "#FFCC99";
-        Drawing.fillRect(0, 27, W, H - 22);
+        Drawing.fillRect(0, 27, canvas.width, canvas.height - 22);
     }
         
     this.mainLoop = function() {

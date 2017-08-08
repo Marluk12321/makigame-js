@@ -3,8 +3,8 @@ function player() {
 
     var w = 32, h = 16,             // width, height
         // coords set to middle of screen
-        x = W/5 - w/2,
-        y = Math.floor(HeaderH + (H - HeaderH) / 2 - h / 2),
+        x = canvas.width/5 - w/2,
+        y = Math.floor(HeaderH + (canvas.height - HeaderH) / 2 - h / 2),
         
         color = "gray",
         v = 0.125,                  // speed     
@@ -31,8 +31,8 @@ function player() {
         if (Keys[DOWN] && !Keys[UP]) {
             dy = v * diff;
             yFlag = -1;
-            if (y + h + h/8 > H - 1) {
-                y = H - 1 - h - h/8;
+            if (y + h + h/8 > canvas.height - 1) {
+                y = canvas.height - 1 - h - h/8;
             }
         }
         if (Keys[LEFT] && !Keys[RIGHT]) {
@@ -45,8 +45,8 @@ function player() {
         if (Keys[RIGHT] && !Keys[LEFT]) {
             dx = v * diff;
             xModifier = 4;
-            if (x + w + w/8 > W) {
-                x = W - w - w/8;
+            if (x + w + w/8 > canvas.width) {
+                x = canvas.width - w - w/8;
             }
         }
         

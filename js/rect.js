@@ -141,8 +141,8 @@ function bRect(x, y, w, h, color, v, angle) {
             out = true;
         }
         
-        if (y + h < HeaderH || y > H) {
-            y = vy < 0 ? H : HeaderH - h;
+        if (y + h < HeaderH || y > canvas.height) {
+            y = vy < 0 ? canvas.height : HeaderH - h;
         }
 		
         return out;

@@ -29,8 +29,8 @@ function spawner() {
                     v = 0.17 + 0.06 * Math.random();
                     break;
         }
-        x = W;
-        y = HeaderH + (H - HeaderH - h) * Math.random();
+        x = canvas.width;
+        y = HeaderH + (canvas.height - HeaderH - h) * Math.random();
         angle = Objects.getCurrentAngle();
 		
         if (isSquare) {
