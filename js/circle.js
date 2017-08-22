@@ -24,22 +24,26 @@ function bCircle(x, y, r, color, v, angle) {
         return {left: x-r*approx, top: y-r*approx, right: x+r*approx, bottom: y+r*approx};
     }
 
-    this.getColor = function(){return color;}
+    this.getColor = function() {
+        return color;
+    }
     
     // morph methods
-    this.isMorphing = function(){return morphing;}
+    this.isMorphing = function() {
+        return morphing;
+    }
 
     this.morphStart = function(morphingInto) {
         morphing = true;
         
         // determine target size and speed
-        switch ( morphingInto ){
+        switch (morphingInto) {
             case "blue":
                 targetDimension = r + 5;
                 targetSpeed = v / 2;
                 break;
             case "red":
-                switch ( color ){
+                switch (color) {
                     case "blue":
                         targetDimension = r - 5;
                         targetSpeed = v * 2;
@@ -112,7 +116,9 @@ function bCircle(x, y, r, color, v, angle) {
         }
     }
 
-    this.morphEnd = function(){return morphingComplete;}
+    this.morphEnd = function() {
+        return morphingComplete;
+    }
     
     // main methods
     this.move = function(diff, mainAngle) {
@@ -153,8 +159,6 @@ function bCircle(x, y, r, color, v, angle) {
         Drawing.fill();
         
         Drawing.fillStyle = temp;
-        
-        //if (morphing) errorlog.innerHTML += r + "</br>"
     }
 
 }

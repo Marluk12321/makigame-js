@@ -31,7 +31,7 @@ function gameStuff() {
         // reset objects
         Objects = new objectManager();
         collisionCounter += Objects.checkCollisions();
-        drawBG(false);
+        drawBG();
         Objects.drawAll();
     }
 
@@ -150,31 +150,36 @@ function gameStuff() {
         endFlag = true;
     }
 
-    var drawBG = function(isFirst) {
-        // first time running function
-        if (isFirst) {
-            // background for header
-            Drawing.fillStyle = "#CC6633";
-            Drawing.fillRect(0, 0, canvas.width, 25);
-            // black line
-            Drawing.fillStyle = "black";
-            Drawing.fillRect(0, 25, canvas.width, 2);
-            
-            // lives remaining and enemies spawned counter display
-            Drawing.textAlign = "left";
-            Drawing.fillText("Lives: " +
-                    ( collisionCounter>0 ? "0"+(10-collisionCounter) : 10-collisionCounter ) +
-                    "     Enemies: " + spawnCounter, 4, 18);
-            
-            // time elapsed display
-            var time = Date.now() - startTime,
-                    minutes = Math.floor( (time/1000) / 60 ),
-                    seconds = Math.floor( (time/1000) ) % 60;
-            Drawing.textAlign = "right";
-            Drawing.fillText("Time elapsed: " +
-                    (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds),
-                    canvas.width - 4, 18);	
-        }
+    var initBG = function() {
+        // background for header
+        Drawing.fillStyle = "#CC6633";
+        Drawing.fillRect(0, 0, canvas.width, 25);
+        // black line
+        Drawing.fillStyle = "black";
+        Drawing.fillRect(0, 25, canvas.width, 2);
+        
+        // lives remaining and enemies spawned counter display
+        Drawing.textAlign = "left";
+        Drawing.fillText(
+            "Lives: " +
+                (collisionCounter > 0 ? "0" + (10 - collisionCounter) : 10 - collisionCounter) +
+                "     Enemies: " + spawnCounter,
+            4, 18);
+        
+        // time elapsed display
+        var time = Date.now() - startTime,
+            minutes = Math.floor((time / 1000) / 60),
+            seconds = Math.floor(time / 1000) % 60;
+        Drawing.textAlign = "right";
+        Drawing.fillText(
+            "Time elapsed: " + (minutes < 10 ? "0" + minutes : minutes) + ":" +
+                (seconds < 10 ? "0" + seconds : seconds),
+            canvas.width - 4, 18);
+        
+        drawBG();
+    }
+
+    var drawBG = function() {
         // draws if collision counter changed
         if (collisionCounter !== collisionCounterOld) {
             collisionCounterOld = collisionCounter;
@@ -252,23 +257,24 @@ function gameStuff() {
         }
         collisionCounter += Objects.checkCollisions();
 
-        drawBG(false);
+        drawBG();
         Objects.drawAll();
     }
 
     this.start = function() {
         collisionCounter += Objects.checkCollisions();
-        drawBG(true);
+        initBG()
         Objects.drawAll();
         
         var temp = this;
-        interval = setInterval(function(){return temp.mainLoop()}, 1);
+        interval = setInterval(function(){return temp.mainLoop();}, 1);
     }
 
     this.canTurn = function() {
         var seconds = Math.floor((Date.now() - startTime) / 1000);
     
-        if (seconds % 15 === 0 && seconds > 20) {
+        // during the second
+        if (seconds > 20 && seconds % 15 === 0) {
             if (!turnFlag) {
                 turnFlag = true;
                 return true;
@@ -281,8 +287,12 @@ function gameStuff() {
         }
     }
 
-    this.spawned = function(num){spawnCounter += num}
+    this.spawned = function(num) {
+        spawnCounter += num;
+    }
 
-    this.despawned = function(num){spawnCounter -= num}
+    this.despawned = function(num) {
+        spawnCounter -= num;
+    }
 
 }
